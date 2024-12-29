@@ -5,7 +5,7 @@ import Snake, { Position, Speed } from '@/commons/snake';
 
 
 let startPositions = []
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 10; i++) {
     startPositions = startPositions.concat(new Position(i, 0))
 }
 const width = 500;
@@ -22,10 +22,12 @@ const animate = (canvas, last) => {
     }else {
         const ctx = canvas.getContext('2d')
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-        startSnaky.draw(ctx)
-        startSnaky.update(canvas.width, canvas.height)
-        if (startSnaky.eaten(activeSnack)) {
-            activeSnack = new Snack(width, height, 10)
+        if (startSnaky.stillAlive()) {
+            startSnaky.draw(ctx)
+            startSnaky.update(canvas.width, canvas.height)
+            if (startSnaky.eaten(activeSnack)) {
+                activeSnack = new Snack(width, height, 10)
+            }
         }
         activeSnack.draw(ctx)
         requestAnimationFrame(() => animate(canvas, performance.now()))

@@ -45,7 +45,15 @@ export class Position {
     draw(context, width, height) {
         context.fillRect(this.x, this.y, width, height)
     }
+
+    collided(otherPosition) {
+        let collX = Math.abs(otherPosition.x-this.x) == 0
+        let collY = Math.abs(otherPosition.y-this.y)  == 0
+        return collX && collY
+    }
 }
+
+const BODY_PART_SEPARATION = 10
 
 /*
     The snake should not grow in size.
@@ -54,35 +62,52 @@ export class Position {
 */
 export default class Snake {
     constructor(color, positions, speed) {
-        this.width = 10
-        this.height = 10
+        this.width = BODY_PART_SEPARATION
+        this.height = BODY_PART_SEPARATION
         this.size = positions.length
         this.color = color
         this.positions = positions
         this.speedModulus = speed   
         this.speed = new Speed(-1, 0)
+        this.dead = false
     }
 
+    //Updates the position of the snack and checks if it kills itself
     update(maxWidth, maxHeight) {
-        for (let i = this.size-1; i >= this.speedModulus; i--) {
-            this.positions[i].update(this.positions[i-this.speedModulus])
+        if (this.dead && this.size > 0) {
+            this.positions.pop()
+            this.size--
         }
-        for (let i = this.speedModulus-1; i >= 0; i--) {
+        if (this.positions.length == 0) return
+        let newHeadPosition = new Position(this.positions[0].x, this.positions[0].y)
+        newHeadPosition.move(new Speed(this.speedModulus*this.speed.x, this.speedModulus*this.speed.y), maxWidth, maxHeight)
+        for (let i = this.size-1; i >= (this.speedModulus)/BODY_PART_SEPARATION; i--) {
+            this.positions[i].update(this.positions[i-(this.speedModulus)/BODY_PART_SEPARATION])
+            this.dead = this.dead | this.positions[i].collided(newHeadPosition) 
+        }
+        for (let i = (this.speedModulus)/BODY_PART_SEPARATION-1; i >= 0; i--) {
             this.positions[i].update(this.positions[0])
             let speedUpdate = new Speed((this.speedModulus-i) * this.speed.x, (this.speedModulus-i) * this.speed.y)
             this.positions[i].move(speedUpdate, maxWidth, maxHeight)
+            if (i != 0) {
+                this.dead = this.dead | this.positions[i].collided(newHeadPosition)
+            }
         }
     }
 
     draw(context) {
        this.positions.forEach(position => {
-        context.fillStyle = this.color
+        context.fillStyle = this.dead ? "red" : this.color
         position.draw(context, this.width, this.height, this.color)
        })
     }
 
+    stillAlive() {
+        return !this.dead || this.size > 0
+    }
+
     grow(value) {
-        for (let i = 0; i < value; i++){
+        for (let i = 0; i < (value)/BODY_PART_SEPARATION; i++){
             let offsetX = this.positions[this.size-2].x - this.positions[this.size-1]
             let offsetY = this.positions[this.size-2].y - this.positions[this.size-1]
             let newPosition = new Position(this.positions[this.size-1]-offsetX, this.positions[this.size-1]-offsetY)
@@ -91,6 +116,7 @@ export default class Snake {
         }
     }
 
+    //Returns true if a snack is eaten
     eaten(snack) {
         let eaten = snack.eaten(this.positions[0])
         if (eaten) {

@@ -11,6 +11,7 @@ export class Snack {
     }
 
     eaten(snakeHead) {
+        if(snakeHead == null) return
         let diffX = Math.abs(snakeHead.x-this.x) < 10
         let diffY = Math.abs(snakeHead.y - this.y) < 10
         return (diffX && diffY)
