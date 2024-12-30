@@ -61,7 +61,7 @@ const BODY_PART_SEPARATION = 10
     You can accelerate the snake and thus you increase the size
 */
 export default class Snake {
-    constructor(color, positions, speed) {
+    constructor(color, positions, speed, name) {
         this.width = BODY_PART_SEPARATION
         this.height = BODY_PART_SEPARATION
         this.size = positions.length
@@ -71,7 +71,7 @@ export default class Snake {
         this.speed = new Speed(-1, 0)
         this.dead = false
         this.score = 0
-        this.name = "snake"
+        this.name = name 
     }
 
     //Updates the position of the snack and checks if it kills itself

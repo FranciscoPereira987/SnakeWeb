@@ -2,8 +2,8 @@
 import { Snack } from '@/commons/food';
 import Snake, { Position, Speed } from '@/commons/snake';
 import { onMounted, ref } from 'vue';
-import LooseScreen from './LooseScreen.vue';
-
+import LooseScreen from './LoseScreen.vue';
+import { snakeData } from '@/commons/store';
 
 
 let startPositions = ref([])
@@ -12,7 +12,7 @@ for (let i = 0; i < 10; i++) {
 }
 const width = 500;
 const height = 500;
-const snake = ref(new Snake('green', startPositions.value, 10))
+const snake = ref(new Snake(snakeData.color, startPositions.value, 10, ''))
 const activeSnack = ref(new Snack(width, height, 10))
 
 const frameDuration = 1000 / 60
@@ -23,7 +23,7 @@ const instantiateSnake = () => {
     for (let i = 0; i < 10; i++) {
         snakePositions[i] = new Position(startPositions.value[i].x, startPositions.value[i].y)
     }
-    snake.value = new Snake('green', snakePositions, 10)
+    snake.value = new Snake(snakeData.color, snakePositions, 10, snakeData.name)
 }
 
 const animate = (canvas, last) => {
@@ -67,14 +67,13 @@ const load = () => {
 
 
 
-onMounted(load)
 
+onMounted(load)
 window.addEventListener('keydown', manageInputs)
 </script>
 
 
 <template>
-    <p>{{ snake.score }}</p>
     <canvas id="canvas1">
     </canvas>
     <LooseScreen v-if="!snake.stillAlive()" :reinitiate="load" :snake-name="snake.name" :final-score="snake.score" />

@@ -1,7 +1,11 @@
 <script setup>
+import router from '@/router';
+
 const props = defineProps(["final-score", "snake-name", "reinitiate"])
 
-console.log(props)
+const backToMain = () => {
+    router.push('/')
+}
 
 </script>
 
@@ -12,7 +16,7 @@ console.log(props)
             <p>Final Score: {{ props.finalScore }}</p>
         </template>
         <template v-slot:actions>
-            <v-btn variant="tonal">Go Back</v-btn>
+            <v-btn variant="tonal" @click="backToMain">Go Back</v-btn>
             <v-btn variant="tonal" @click="props.reinitiate">Try Again as: {{ props.snakeName }}</v-btn>
         </template>
     </v-card>
