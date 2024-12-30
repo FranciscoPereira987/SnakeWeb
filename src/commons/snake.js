@@ -70,6 +70,8 @@ export default class Snake {
         this.speedModulus = speed   
         this.speed = new Speed(-1, 0)
         this.dead = false
+        this.score = 0
+        this.name = "snake"
     }
 
     //Updates the position of the snack and checks if it kills itself
@@ -78,7 +80,7 @@ export default class Snake {
             this.positions.pop()
             this.size--
         }
-        if (this.positions.length == 0) return
+        if (this.dead) return
         let newHeadPosition = new Position(this.positions[0].x, this.positions[0].y)
         newHeadPosition.move(new Speed(this.speedModulus*this.speed.x, this.speedModulus*this.speed.y), maxWidth, maxHeight)
         for (let i = this.size-1; i >= (this.speedModulus)/BODY_PART_SEPARATION; i--) {
@@ -100,6 +102,9 @@ export default class Snake {
         context.fillStyle = this.dead ? "red" : this.color
         position.draw(context, this.width, this.height, this.color)
        })
+       context.font = "18px arial"
+       context.fillStyle = "black"
+       context.fillText(this.name, this.positions[0].x, this.positions[0].y)
     }
 
     stillAlive() {
@@ -107,6 +112,7 @@ export default class Snake {
     }
 
     grow(value) {
+        this.score += value
         for (let i = 0; i < (value)/BODY_PART_SEPARATION; i++){
             let offsetX = this.positions[this.size-2].x - this.positions[this.size-1]
             let offsetY = this.positions[this.size-2].y - this.positions[this.size-1]
