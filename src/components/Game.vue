@@ -1,21 +1,30 @@
 <script setup>
 import { Snack } from '@/commons/food';
 import Snake, { Position, Speed } from '@/commons/snake';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import LooseScreen from './LooseScreen.vue';
 
 
 
-let startPositions = []
+let startPositions = ref([])
 for (let i = 0; i < 10; i++) {
-    startPositions = startPositions.concat(new Position(i, 0))
+        startPositions.value = startPositions.value.concat(new Position(i, 0))
 }
 const width = 500;
 const height = 500;
-const snake = ref(new Snake('green', startPositions, 10))
+const snake = ref(new Snake('green', startPositions.value, 10))
 const activeSnack = ref(new Snack(width, height, 10))
 
 const frameDuration = 1000 / 60
+
+const instantiateSnake = () => {
+    // TODO: Check how to do this so that it returns a random position where no snake is on
+    let snakePositions = Array(10)
+    for (let i = 0; i < 10; i++) {
+        snakePositions[i] = new Position(startPositions.value[i].x, startPositions.value[i].y)
+    }
+    snake.value = new Snake('green', snakePositions, 10)
+}
 
 const animate = (canvas, last) => {
     
@@ -30,6 +39,10 @@ const animate = (canvas, last) => {
             if (snake.value.eaten(activeSnack.value)) {
                 activeSnack.value = new Snack(width, height, 10)
             }
+        }else {
+            canvas.width = 0
+            canvas.height = 0
+            return
         }
         activeSnack.value.draw(ctx)
         requestAnimationFrame(() => animate(canvas, performance.now()))
@@ -40,10 +53,10 @@ const manageInputs = (e) => {
     snake.value.keydown(e.key) 
 }
 
-const load = () => {
-    
+const load = () => {    
     //Basic Setup
-    const canvas = document.getElementById('canvas1')
+    instantiateSnake()
+    let canvas = document.getElementById('canvas1')
     if(canvas == null) {
         return
     }
@@ -53,14 +66,16 @@ const load = () => {
 }
 
 
-window.addEventListener('load', load)
+
+onMounted(load)
+
 window.addEventListener('keydown', manageInputs)
 </script>
 
 
 <template>
     <p>{{ snake.score }}</p>
-    <canvas v-if="snake.stillAlive() && false" id="canvas1">
+    <canvas id="canvas1">
     </canvas>
-    <LooseScreen v-else :snake-name="snake.name" :final-score="snake.score" />
+    <LooseScreen v-if="!snake.stillAlive()" :reinitiate="load" :snake-name="snake.name" :final-score="snake.score" />
 </template>
