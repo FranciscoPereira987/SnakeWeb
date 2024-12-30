@@ -4,7 +4,7 @@ import router from '@/router';
 const props = defineProps(["final-score", "snake-name", "reinitiate"])
 
 const backToMain = () => {
-    router.push('/')
+    router.push("/")
 }
 
 </script>
@@ -27,9 +27,7 @@ const backToMain = () => {
 
 .losing-card {
    position: absolute;
-   display: flex;
-   justify-content: space-around;
-   max-width: 50vb;
+   max-width: 30vb;
    height: 500;
    top: 50%;
    left:50%;
