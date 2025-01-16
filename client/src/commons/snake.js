@@ -13,21 +13,19 @@ export class Speed {
 
 export class Position {
     constructor(x, y) {
-        this.x = x
-        this.y = y
+        this.x = x 
+        this.y = y 
     }
 
     applyLimits(maxWidth, maxHeight) {
-        if (this.x >= maxWidth) {
-            this.x -= maxWidth
-        }else if (this.x < 0) {
+        while (this.x < 0 ) {
             this.x += maxWidth
         }
-        if (this.y >= maxHeight) {
-            this.y -= maxHeight
-        }else if (this.y < 0) {
+        while (this.y < 0) {
             this.y += maxHeight
         }
+        this.x = this.x % maxWidth
+        this.y = this.y % maxHeight
     }
 
     update(newPosition) {
@@ -37,13 +35,13 @@ export class Position {
     }
 
     move(speed, maxWidth, maxHeight) {
-        this.applyLimits(maxWidth, maxHeight)
         this.x += speed.x
         this.y += speed.y
+        this.applyLimits(maxWidth, maxHeight)
     }
 
     draw(context, width, height) {
-        context.fillRect(this.x, this.y, width, height)
+        context.fillRect(this.x * SQUARE_TRANSFORMATION, this.y * SQUARE_TRANSFORMATION, width, height)
     }
 
     collided(otherPosition) {
@@ -54,6 +52,46 @@ export class Position {
 }
 
 const BODY_PART_SEPARATION = 10
+export const SQUARE_TRANSFORMATION = 10
+
+
+export class Game {
+    constructor(snakeId, food, players) {
+        this.player = snakeId
+        this.food = food
+        this.players = players
+        this.width = 50
+        this.height = 50
+    }
+
+    ChangePlayerDirection(player, newDirection) {
+        const playerSnake = this.players.filter((p) => p.name == player).pop()
+        playerSnake.speed = newDirection
+    }
+
+    ChangeFoodPosition(newFood) {
+        this.food = newFood
+    }
+
+    /*
+        Advances the game, moving all the snakes
+        in this case just one
+    */
+    Advance(maxWidth, maxLength) {
+        this.players.forEach((snake) => {
+            snake.update(maxWidth, maxLength)
+            snake.eaten(this.food)
+        })
+    }   
+    
+    /*
+        Draws the Game in the canvas
+    */
+    draw(context){
+        this.players.forEach((snake) => snake.draw(context))
+        this.food.draw(context)
+   }
+}
 
 /*
     The snake should not grow in size.
@@ -82,20 +120,13 @@ export default class Snake {
         }
         if (this.dead) return
         let newHeadPosition = new Position(this.positions[0].x, this.positions[0].y)
-        newHeadPosition.move(new Speed(this.speedModulus*this.speed.x, this.speedModulus*this.speed.y), maxWidth, maxHeight)
-        for (let i = this.size-1; i >= (this.speedModulus)/BODY_PART_SEPARATION; i--) {
-            this.positions[i].update(this.positions[i-(this.speedModulus)/BODY_PART_SEPARATION])
+        newHeadPosition.move(this.speed, maxWidth, maxHeight)
+        for (let i = this.size-1; i > 0; i--) {
+            this.positions[i].update(this.positions[i - 1])
             this.dead = this.dead | this.positions[i].collided(newHeadPosition) 
         }
-        for (let i = (this.speedModulus)/BODY_PART_SEPARATION-1; i >= 0; i--) {
-            this.positions[i].update(this.positions[0])
-            let speedUpdate = new Speed((this.speedModulus-i) * this.speed.x, (this.speedModulus-i) * this.speed.y)
-            this.positions[i].move(speedUpdate, maxWidth, maxHeight)
-            if (i != 0) {
-                this.dead = this.dead | this.positions[i].collided(newHeadPosition)
-            }
-        }
-    }
+        this.positions[0] = newHeadPosition
+    }   
 
     draw(context) {
        this.positions.forEach(position => {
@@ -104,7 +135,7 @@ export default class Snake {
        })
        context.font = "18px arial"
        context.fillStyle = "black"
-       context.fillText(this.name, this.positions[0].x, this.positions[0].y)
+       context.fillText(this.name, this.positions[0].x * SQUARE_TRANSFORMATION, this.positions[0].y * SQUARE_TRANSFORMATION)
     }
 
     stillAlive() {
@@ -131,27 +162,27 @@ export default class Snake {
         return eaten
     }
 
-    keydown(key) {
+    keydown(key, callback) {
         switch (key) {
             case "ArrowUp":
             case "w":
             case "W":
-                this.speed = new Speed(0, -1)
+                callback(0)
                 break;
             case "ArrowDown":
             case "s":
             case "S":
-                this.speed = new Speed(0, 1)
+                callback(1)
                 break;
             case "ArrowLeft":
             case "a":
             case "A":
-                this.speed = new Speed(-1, 0)
+                callback(2)
                 break;
             case "ArrowRight":
             case "d":
             case "D":
-                this.speed = new Speed(1, 0)
+                callback(3)
                 break
         }
     } 

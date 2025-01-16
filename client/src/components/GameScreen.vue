@@ -1,18 +1,20 @@
 <script setup>
 import { Snack } from '@/commons/food';
-import Snake, { Position, Speed } from '@/commons/snake';
+import Snake, { Game, Position, Speed } from '@/commons/snake';
 import { onMounted, ref } from 'vue';
 import LooseScreen from './LoseScreen.vue';
 import { snakeData } from '@/commons/store';
+import { onDataUpdate, onServerMessage, SendMovement } from '@/commons/proto';
+
 
 
 let startPositions = ref([])
 for (let i = 0; i < 10; i++) {
         startPositions.value = startPositions.value.concat(new Position(i, 0))
 }
-const width = 500;
-const height = 500;
-const snake = ref(new Snake(snakeData.color, startPositions.value, 10, ''))
+const width = 50;
+const height = 50;
+const snake = ref(new Snake(snakeData.color, startPositions.value, 1, ''))
 const activeSnack = ref(new Snack(width, height, 10))
 
 const frameDuration = 1000 / 60
@@ -23,7 +25,16 @@ const instantiateSnake = () => {
     for (let i = 0; i < 10; i++) {
         snakePositions[i] = new Position(startPositions.value[i].x, startPositions.value[i].y)
     }
-    snake.value = new Snake(snakeData.color, snakePositions, 10, snakeData.name)
+    snake.value = new Snake(snakeData.color, snakePositions, 1, snakeData.name)
+    snakeData.gameData = new Game(1, activeSnack.value, [snake.value])
+}
+
+const updateScreen = (e) => {
+    onServerMessage(e.data, width, height)
+}
+
+const sendKeydownUpdate = (update) => {
+    SendMovement(snakeData.connection, update, snakeData.name)
 }
 
 const animate = (canvas, last) => {
@@ -34,34 +45,32 @@ const animate = (canvas, last) => {
         const ctx = canvas.getContext('2d')
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         if (snake.value.stillAlive()) {
-            snake.value.draw(ctx)
-            snake.value.update(canvas.width, canvas.height)
-            if (snake.value.eaten(activeSnack.value)) {
-                activeSnack.value = new Snack(width, height, 10)
-            }
+            snakeData.gameData.draw(ctx) 
         }else {
             canvas.width = 0
             canvas.height = 0
             return
         }
-        activeSnack.value.draw(ctx)
         requestAnimationFrame(() => animate(canvas, performance.now()))
     }
 }
 
 const manageInputs = (e) => {
-    snake.value.keydown(e.key) 
+    snake.value.keydown(e.key, sendKeydownUpdate) 
 }
 
 const load = () => {    
     //Basic Setup
     instantiateSnake()
+    if (snakeData.connection != null) {
+        snakeData.connection.onmessage = updateScreen
+    }
     let canvas = document.getElementById('canvas1')
     if(canvas == null) {
         return
     }
     canvas.width = 500;
-    canvas.height = 500
+    canvas.height = 500;
     requestAnimationFrame(() => animate(canvas, performance.now()))
 }
 

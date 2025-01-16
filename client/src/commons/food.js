@@ -1,3 +1,5 @@
+import { SQUARE_TRANSFORMATION } from "./snake"
+
 export class Snack {
     constructor(width, height, value) {
         this.x = Math.floor(Math.random() * width)
@@ -7,13 +9,13 @@ export class Snack {
 
     draw(context) {
         context.fillStyle = "yellow"
-        context.fillRect(this.x, this.y, 10, 10)
+        context.fillRect(this.x * SQUARE_TRANSFORMATION, this.y *SQUARE_TRANSFORMATION, 10, 10)
     }
 
     eaten(snakeHead) {
         if(snakeHead == null) return
-        let diffX = Math.abs(snakeHead.x-this.x) < 10
-        let diffY = Math.abs(snakeHead.y - this.y) < 10
+        let diffX = (snakeHead.x-this.x) == 0
+        let diffY = (snakeHead.y - this.y) == 0
         return (diffX && diffY)
     }
 }
